@@ -1,0 +1,26 @@
+################################################################################
+# STAGING ENVIRONMENT
+################################################################################
+
+[general]
+# Used by Nginx - used for setting the sitename and redirecting to SSL etc
+webserver_hostname=blog-dev.example.com
+
+################################################################################
+# Environment variables set before running the application
+# Note that all items here will be automatically upper-cased
+################################################################################
+[app_environment]
+
+RAILS_ENV=development
+
+# How many concurrent Puma processes and threads to use.
+# WEB_CONCURRENCY: number of running parallel processes
+# WEB_CONCURRENCY_MIN and MAX_THREADS: Number of threads per process
+WEB_CONCURRENCY=2
+WEB_CONCURRENCY_MIN_THREADS=8
+WEB_CONCURRENCY_MAX_THREADS=16
+
+# Other environment values
+SOME_ENV_VALUE=example
+SOME_OTHER_ENV_VALUE=example2

@@ -1,0 +1,12 @@
+#
+# Add Useful packages
+#
+- name: Useful Packages | Install system packages
+  apt: name={{ item }}
+  with_items:
+    - ca-certificates
+    - curl
+    - fail2ban
+    - strace
+    - sysstat     # for 'sar'
+    - tcpdump

@@ -1,0 +1,24 @@
+#!/bin/bash
+set -o pipefail
+set -e
+
+if [[ -z "$1" || -z "$2" || -z "$2" || "$1" == "--help" ]]; then
+  echo "Please supply three arguments - the s3 bucket prefix, the app name, and environment (eg: 'yourname blog dev' / 'yourname blog staging' / 'yourname blog production')"
+  exit
+fi
+
+BUCKET="$1-$2-$3-releases"
+
+echo "Copying fact files to S3"
+aws s3 cp --recursive facts/$3/ s3://${BUCKET}/
+
+echo "Copying vendor files to S3"
+aws s3 cp --recursive vendor/ s3://${BUCKET}/
+
+echo "Copying Ansible config to S3"
+TMPFILE=$(mktemp /tmp/push-config-to-s3-tar-XXXXXXXXXXXX).tar.gz
+tar zcf ${TMPFILE} ansible/
+aws s3 cp ${TMPFILE} s3://${BUCKET}/server-autoscale-latest.tar.gz
+
+rm -f ${TMPFILE}
+echo "SUCCESS"

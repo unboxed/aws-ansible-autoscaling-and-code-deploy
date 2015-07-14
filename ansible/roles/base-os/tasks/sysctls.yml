@@ -1,0 +1,23 @@
+# Performance related improvements: Selected items from the below, where I
+# think they are appropriate, with a focus on the items from the first two URLs
+#
+# http://www.slideshare.net/AmazonWebServices/pfc306-performance-tuning-amazon-ec2-instances-aws-reinvent-2014?ref=https://cloudnative.io/blog/2015/01/aws-ec2-performance-tuning/
+# http://russ.garrett.co.uk/2009/01/01/linux-kernel-tuning/
+# http://engineering.chartbeat.com/2014/01/02/part-1-lessons-learned-tuning-tcp-and-nginx-in-ec2/
+# https://engineering.gosquared.com/optimising-nginx-node-js-and-networking-for-heavy-workloads
+#
+- name: Network performance sysctls
+  sysctl: name="{{ item.name }}" value="{{ item.value }}" sysctl_set=yes
+  with_items:
+    - { name: net.core.rmem_max, value: 16777216 }
+    - { name: net.core.wmem_max, value: 16777216 }
+
+    - { name: net.ipv4.tcp_wmem, value: "4096 12582912 16777216" }
+    - { name: net.ipv4.tcp_rmem, value: "4096 12582912 16777216" }
+
+    - { name: net.core.netdev_max_backlog, value: 2500 }
+    - { name: net.core.somaxconn, value: 1024 }
+    - { name: net.ipv4.ip_local_port_range, value: "10240 65535" }
+    - { name: net.ipv4.tcp_max_syn_backlog, value: 8096 }
+    - { name: net.ipv4.tcp_slow_start_after_idle, value: 0 }
+    - { name: net.ipv4.tcp_tw_reuse, value: 1 }

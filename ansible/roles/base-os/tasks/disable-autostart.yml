@@ -1,0 +1,13 @@
+# Disable services from auto-starting on 'apt-get install', since it means they
+# would come up before they are appropriately configured
+- name: Disable Autostart | Install Policy package
+  apt: name=policyrcd-script-zg2 state=installed
+
+- name: Disable Autostart | Create Whitelist directory
+  file: path=/etc/policy-rc.d/whitelist/ state=directory owner=root group=root mode="u=rw,g=r,o=r"
+
+- name: Disable Autostart | Whitelist SSH
+  copy: content="" dest=/etc/policy-rc.d/whitelist/ssh owner=root group=root mode=0644
+
+- name: Disable Autostart | Create base config
+  copy: src=../files/etc/zg-policy-rc.d.conf dest=/etc/zg-policy-rc.d.conf owner=root group=root mode="u=rw,g=r,o=r"

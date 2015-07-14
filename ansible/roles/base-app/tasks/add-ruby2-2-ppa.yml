@@ -1,0 +1,6 @@
+- name: Add Ruby PPA
+  apt_repository: repo='ppa:brightbox/ruby-ng'
+  # Ignore errors, in case there are network errors or the remote box is down.
+  # We are installing the deb from the local S3 based copy, so this will
+  # only be for security upgrades
+  ignore_errors: yes

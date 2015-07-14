@@ -1,0 +1,73 @@
+---
+- name: Base OS setup
+  hosts: all
+  vars_files:
+    - group_vars/webserver
+  tasks:
+    # Groups
+    - name: Users | Add standardised groups
+      group: name={{ item }} state=present
+      with_items:
+        - wheel
+
+    # Sudoers
+    - name: Users | Configure sudoers
+      template: src=templates/etc/sudoers.j2 dest=/etc/sudoers owner=root group=root mode=0440
+
+    # Deploy User - only on webservers
+    - name: Users | Add deploy user
+      user: name=deploy comment="Deploy user" shell=/bin/bash
+      when: ansible_local.cloudformation.autoscale.server_type == "webserver"
+
+    - name: Users | set deploy directory permissions so that nginx can access it
+      file: name=/home/deploy/ state=directory owner=deploy group=www-data mode=0710
+      when: ansible_local.cloudformation.autoscale.server_type == "webserver"
+
+    - name: Users | Check no ssh keys for deploy user since we don't use Capistrano
+      file: path=/home/deploy/.ssh/ state=absent
+      when: ansible_local.cloudformation.autoscale.server_type == "webserver"
+
+    # Add sysadmin users
+    - name: Users | add sysadmin users
+      user: name={{ item.name }} comment='{{ item.comment }}' groups=adm,wheel append=yes password={{ item.password }} shell={{ item.shell | default('/bin/bash') }}
+      with_items: sysadmin_users
+
+    - name: Users | Set user home directory permissions
+      file: name=/home/{{item.name}}/ state=directory owner={{ item.name }} group={{ item.name }} mode=0700
+      with_items: sysadmin_users
+
+    - name: Users | Add SSH key to each sysadmin user
+      authorized_key: user={{ item.name }} key="{{ lookup('file', '../ssh_public_keys/' ~ item.name ~ '.pub') }}"
+      with_items: sysadmin_users
+
+    - name: Users | Delete users that should no longer exist
+      user: state=absent name={{ item.name }}
+      with_items: ex_sysadmin_users
+
+    ################################################################################
+    # Lock Out Default Users
+    #
+    # See the vars/main.yml lock_out_ubuntu_and_root_users setting for more info
+    #
+    ################################################################################
+    #
+    # Delete default system users towards the end of the OS-setup process (ie after
+    # adding the users we actually want). This way, if something goes wrong in the
+    # bootup process we can log in and diagnose things.
+    - name: Remove default ssh keys
+      file: path={{ item }} state=absent
+      when: lock_out_ubuntu_and_root_users
+      with_items:
+        - /root/.ssh/
+        - /home/ubuntu/.ssh/
+
+    # Unfortunately cloud-init does not work well if you delete the ubuntu account
+    # entirely, since it tries to validate it as the last step. This leads to the
+    # message "Waiting for Launch Lifecycle Action" on the auto scaling group. We
+    # thus need to make sure that the user cannot log in via SSH, and then we force
+    # the password to be a "!" - a locked-out account. This is the default on an AWS
+    # Ubuntu instance, but we enforce this so that if we re-run Ansible, and someone
+    # has unlocked the account, it'll be forced re-locked.
+    - name: Disable Ubuntu User
+      user: name=ubuntu password="!"
+      when: lock_out_ubuntu_and_root_users

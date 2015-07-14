@@ -1,0 +1,92 @@
+################################################################################
+# Main Defaults
+################################################################################
+
+# Where the stack is going to run. Note that if you want to change this,
+# you will need to modifty stack.json and other files in this repository too
+aws_region: eu-west-1
+
+# Where we store temporary working files. These files can contain confidential
+# information, so we want them somewhere very limited. /root/ works ok for this,
+# without having to add parent dirs and manage permissions
+autoscale_work_dir: /root/cloud-init/ansible/
+
+# Which Ubuntu logs to send log messages for
+awslogs_ubuntu_logs:
+  - { file: "/var/log/auth.log", datetime_format: "%b %d %H:%M:%S" }
+  - { file: "/var/log/kern.log", datetime_format: "%b %d %H:%M:%S" }
+  - { file: "/var/log/syslog",   datetime_format: "%b %d %H:%M:%S" }
+
+  # Nonstandard log timestamp formats
+  - { file: "/var/log/fail2ban.log", datetime_format: "%Y-%M-%D %H:%M:%S" }
+
+################################################################################
+# System Users
+################################################################################
+
+# Sysadmin users - automatically get a login and a ssh key
+# create encrypted password with mkpasswd -m sha-512 and add a line below
+# You might need to 'apt-get install whois' to install mkpasswd
+
+# Replace this with something like the example below:
+sysadmin_users: []
+# sysadmin_users:
+#   - { name: 'yourusername', comment: 'Your Name', password: 'sha-512-hash-over-here-please' }
+
+# These users will be removed. You can copy-and-paste from the section above.
+# The password field and comment are ignored
+ex_sysadmin_users: []
+# removed_sysadmin_users:
+#   - { name: 'oskar.pearson' }
+
+# Once you've created individual accounts, as per the above, you should change
+# this to true - that way the Ubuntu and Root user will have their SSH keys
+# removed, so everyone needs to use named accounts
+lock_out_ubuntu_and_root_users: false
+
+
+################################################################################
+# Defaults for role: ansible-apt
+################################################################################
+#
+# We use the ansible-apt package to manage applying security upgrades to the
+# server.
+#
+# HOWEVER: the role tries to reboot the box if upgrade_now is set, which
+# interrupts the server configuration process. So we force that to be false,
+# and the base-os/main.yml file applies the apt upgrades itself, but doesn't
+# reboot.
+upgrade_now: false
+
+# Don't autoclean, since this can end up deleting deb files we've
+# manually downloaded from S3 during the install process
+apt_autoclean: false
+
+unattended_automatic_reboot: false
+apt_update_source_list_mirror: http://archive.ubuntu.com/
+apt_autoremove: yes
+unattended_install: true
+unattended_mail: you@example.com
+unattended_mail_error: true
+unattended_origins:
+   security: true
+   updates: true
+   proposed: false
+   backports: false
+
+################################################################################
+# Defaults for role: resmo.ntp
+################################################################################
+# If VMs are frozen and then come back again, don't panic:
+# as per http://doc.ntp.org/4.1.2/miscopt.htm and http://stackoverflow.com/questions/117422/how-can-i-resolve-the-drifting-clock-for-my-virtual-machine
+ntp_config_tinker_panic_enabled: true
+
+################################################################################
+# Role: unboxed.pumacorn (some variables are shared with nickjj.rails, which
+# we are not using for this project)
+################################################################################
+rails_deploy_app_name: "{{ ansible_local.cloudformation.autoscale.app_name }}"
+rails_deploy_path: "/home/deploy/{{ ansible_local.cloudformation.autoscale.app_name }}"
+rails_deploy_user: deploy
+rails_deploy_bundle: "/usr/local/bin/bundle"
+pumacorn_config_path: "{{ rails_deploy_path }}/current/config/{{ pumacorn_server }}.rb"

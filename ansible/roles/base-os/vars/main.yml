@@ -1,0 +1,21 @@
+---
+# Sysadmin users - automatically get a login and a ssh key
+# create encrypted password with mkpasswd -m sha-512 and add a line below
+# You might need to 'apt-get install whois' to install mkpasswd
+
+# Replace this with something like the example below:
+sysadmin_users: []
+# sysadmin_users:
+#   - { name: 'oskar.pearson', comment: 'Oskar Pearson', password: 'sha-512-hash-over-here-please' }
+
+# These users will be removed. You can copy-and-paste from the section above.
+# The password field and comment are ignored
+ex_sysadmin_users: []
+# removed_sysadmin_users:
+#   - { name: 'oskar.pearson' }
+
+
+# Once you've created individual accounts, as per the above, you should change
+# this to true - that way the Ubuntu and Root user will have their SSH keys
+# removed, so everyone needs to use named accounts
+lock_out_ubuntu_and_root_users: false

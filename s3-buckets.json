@@ -1,0 +1,63 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "S3 Buckets",
+    "Parameters": {
+        "AppName": {
+            "Description": "App Name - use a-z only - preferably all lower-case for consistency. Something like 'blog' - it should match the app's appspec file",
+            "Type": "String",
+            "MinLength": "1"
+        },
+        "BucketPrefix": {
+            "Description": "A unique string - use something like 'yourname'. This is used to make sure that your S3 bucket name is unique",
+            "Type": "String",
+            "MinLength": "1"
+        },
+        "EnvironmentName": {
+            "Description": "The environment we are building",
+            "Type": "String",
+            "Default": "dev",
+            "AllowedValues": [
+                "dev",
+                "staging",
+                "production"
+            ],
+            "MinLength": "1"
+        }
+    },
+    "Resources": {
+        "ReleaseBucket": {
+            "Type": "AWS::S3::Bucket",
+            "Metadata": {
+                "Comment1": "Where software packages are uploaded to, so they can be applied to the system at startup",
+                "Comment2": "The join below means the name is something like blog-testing-releases"
+            },
+            "Properties": {
+                "BucketName": {
+                    "Fn::Join": [
+                        "",
+                        [
+                            {
+                                "Ref": "BucketPrefix"
+                            },
+                            "-",
+                            {
+                                "Ref": "AppName"
+                            },
+                            "-",
+                            {
+                                "Ref": "EnvironmentName"
+                            },
+                            "-releases"
+                        ]
+                    ]
+                },
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "App Releases"
+                    }
+                ]
+            }
+        }
+    }
+}

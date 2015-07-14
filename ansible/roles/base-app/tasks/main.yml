@@ -1,0 +1,13 @@
+---
+# Add the Ruby PPA before we apply security updates, so that we only apt-get update once,
+# and the PPA would supply any required upgrades
+- include: add-ruby2-2-ppa.yml
+
+# Download and install required packages
+- include: install-required-packages.yml
+
+# Pre-app config - users, directories, and config files
+- include: app-config.yml
+
+# Install CodeDeploy
+- include: code-deploy.yml

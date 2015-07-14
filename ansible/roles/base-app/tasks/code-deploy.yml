@@ -1,0 +1,15 @@
+# CodeDeploy specifically references and require Ruby 2.0, so we install it
+- name: CodeDeploy | Install ruby2.0
+  apt: name=ruby2.0
+
+- name: CodeDeploy | Fetch Package
+  # The built-in Ansible s3 module doesn't work, since we don't have permissions
+  # to list the bucket.
+  # s3: bucket={{ code_deploy_installer_bucket }} object={{ code_deploy_installer_file }} dest={{ autoscale_work_dir }}/codedeploy-install mode=get
+  command: creates={{ autoscale_work_dir }}/codedeploy-install aws s3 cp --region {{ aws_region }} {{ code_deploy_installer }} {{ autoscale_work_dir }}/codedeploy-install
+
+- name: Set CodeDeploy Agent as Executable
+  file: name={{ autoscale_work_dir }}/codedeploy-install owner=root group=root mode=700
+
+- name: Install CodeDeploy Agent unless it is already installed
+  command: creates=/opt/codedeploy-agent/bin/codedeploy-agent chdir={{ autoscale_work_dir }} {{ autoscale_work_dir }}/codedeploy-install auto

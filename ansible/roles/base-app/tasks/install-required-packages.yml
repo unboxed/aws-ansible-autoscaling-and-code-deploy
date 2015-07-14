@@ -1,0 +1,32 @@
+- name: Required Packages | Add packages required by the app.
+  apt: name={{ item }}
+  # build-essential, so that we can compile native code in ruby gems
+  # get - generally useful
+  # libpq-dev - so that we can connect to the db from rails
+  # nodejs - http://stackoverflow.com/questions/7092107/rails-could-not-find-a-javascript-runtime
+  # postgresql-client - so that we can run 'bundle exec rails dbconsole'
+  with_items:
+    - build-essential
+    - git
+    - libpq-dev
+    - nodejs
+    - postgresql-client
+
+- name: Add Latest Ruby from the PPA
+  apt: name={{ item }}
+  with_items:
+    - ruby2.2
+    - ruby-switch
+    - ruby2.2-dev
+
+# Ensure that we're using Ruby 2.2 by default
+- stat: follow=no path=/etc/alternatives/ruby
+  register: ruby_version
+
+- name: Switch to ruby 2.2 if needs be
+  command: ruby-switch --set ruby2.2
+  when: ruby_version.stat.lnk_source != "/usr/bin/ruby2.2"
+
+# Ensure Bundler is installed, so that we can run the app
+- name: Install Bundler
+  command: creates=/usr/local/bin/bundler gem2.2 install bundler

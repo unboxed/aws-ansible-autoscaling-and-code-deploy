@@ -1,0 +1,7 @@
+# Configure the hostname to something useful
+- name: Pre-App Config | Configure hostname
+  copy: content="{{ ansible_local.cloudformation.autoscale.environment_name }}-{{ ansible_local.cloudformation.autoscale.server_type }}-{{ ansible_ec2_instance_id }}\n" dest=/etc/hostname owner=root group=root mode=644
+  notify: reset hostname
+
+- name: Pre-App Config | configure /etc/hosts
+  lineinfile: dest=/etc/hosts regexp='^127\.0\.0\.1' line='127.0.0.1 localhost {{ ansible_local.cloudformation.autoscale.environment_name }}-{{ ansible_local.cloudformation.autoscale.server_type }}-{{ ansible_ec2_instance_id }}'

@@ -1,0 +1,8 @@
+- name: EBS | Create log dir
+  file: path=/log state=directory owner=root group=root mode=0755
+
+- name: EBS | Format filesystem
+  filesystem: fstype=ext4 dev=/dev/xvdf
+
+- name: EBS | Create mount
+  mount: name=/log src=/dev/xvdf fstype=ext4 state=mounted

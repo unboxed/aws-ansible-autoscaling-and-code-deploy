@@ -1,0 +1,23 @@
+---
+- include: users.yml
+
+- name: Base OS setup
+  hosts: all
+  vars_files:
+    - group_vars/webserver
+  roles:
+    - { role: base-os, tags: base-os }
+
+- name: Configure App
+  hosts: all
+  vars_files:
+    - group_vars/webserver
+  roles:
+    - { role: base-app, tags: base-app }
+
+- name: Configure Webserver
+  hosts: all
+  vars_files:
+    - group_vars/webserver
+  roles:
+    - { role: webserver, tags: webserver }

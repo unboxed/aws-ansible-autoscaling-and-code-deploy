@@ -1,0 +1,34 @@
+- name: Web Server | Create mounted log dir
+  file: path=/log/nginx state=directory owner=www-data group=adm mode=0750
+
+# We use the nginx-extras package, since we use some additional nginx features
+- name: Web Server | Add nginx
+  apt: name=nginx-extras
+  notify: restart nginx
+
+# Increase the number of filehandles available for Nginx beyond what's likely
+- name: Web Server | Configure number of filehandles
+  sysctl: name=fs.file-max value=120000 state=present
+  notify: restart nginx
+
+################################################################################
+# Configure Nginx
+################################################################################
+- name: Web Server | Add nginx config
+  template: src=etc/nginx/nginx.conf.j2 dest=/etc/nginx/nginx.conf owner=root group=root mode=0644
+  notify: restart nginx
+
+- name: Web Server | Create Site
+  template: src=etc/nginx/sites-available/app.j2 dest=/etc/nginx/sites-available/app owner=root group=root mode=0644
+  notify: restart nginx
+
+- name: Web Server | Set Site as Enabled
+  file: src=/etc/nginx/sites-available/app dest=/etc/nginx/sites-enabled/app owner=root group=root state=link
+  notify: restart nginx
+
+- name: Web Server | Remove Default Site
+  file: name={{ item }} state=absent
+  with_items:
+    - /etc/nginx/sites-available/default
+    - /etc/nginx/sites-enabled/default
+  notify: restart nginx

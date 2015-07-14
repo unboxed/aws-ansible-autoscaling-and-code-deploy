@@ -1,0 +1,45 @@
+################################################################################
+# Environment Settings
+################################################################################
+# Environment file that's used for the setup of the app. It's the authoritative
+# list of environment variables supplied to the app as per the concepts at
+# http://12factor.net/config
+- name: Pre-App Config | Create Environment File
+  template: src=etc/default/app-env-vars.j2 dest=/etc/default/{{ ansible_local.cloudformation.autoscale.app_name }} owner=root group=deploy mode=0640
+
+# To simplify life when running "bundle exec rails console" or items in cron
+# or via sudo, we update the deploy user's pam environment based on the content
+# of the app environment file.
+- name: Pre-App Config | PAM environment variables file
+  file: state=touch name=/home/deploy/.pam_environment owner=deploy group=deploy mode=0600
+  changed_when: false
+
+- name: Pre-App Config | Set deploy user PAM environment variables
+  command: bash -c "cat /etc/default/{{ ansible_local.cloudformation.autoscale.app_name }} | sed -e 's/^export //' > /home/deploy/.pam_environment"
+  changed_when: false
+
+# Additionally, cover all bases and get bash to load the file too
+- name: Pre-App Config | Set bash profile to load environment variables
+  lineinfile: dest=/home/deploy/.bash_profile create=yes owner=deploy group=deploy mode=0600 line='if [ -f /etc/default/{{ ansible_local.cloudformation.autoscale.app_name }} ] ; then source /etc/default/{{ ansible_local.cloudformation.autoscale.app_name }}; fi'
+
+################################################################################
+# Create directories that the app expects, in the absence of Capistrano
+################################################################################
+- name: Pre-App Config | Create directories
+  file: path={{ item }} state=directory owner=deploy group=deploy mode="u=rwx,g=rx,o=rx"
+  with_items:
+    - /home/deploy/{{ ansible_local.cloudformation.autoscale.app_name }}/
+    - /home/deploy/{{ ansible_local.cloudformation.autoscale.app_name }}/current/
+    - /home/deploy/{{ ansible_local.cloudformation.autoscale.app_name }}/shared/
+    - /home/deploy/{{ ansible_local.cloudformation.autoscale.app_name }}/shared/assets/
+    - /home/deploy/{{ ansible_local.cloudformation.autoscale.app_name }}/shared/bundle/
+    - /home/deploy/{{ ansible_local.cloudformation.autoscale.app_name }}/shared/pids/
+
+################################################################################
+# Externally mounted log dir
+################################################################################
+- name: Pre-App Config | Create log directory
+  file: path=/log/rails state=directory owner=deploy group=deploy mode="u=rwx,g=rx,o=rx"
+
+- name: Pre-App Config | Link log directory
+  file: src=/log/rails dest=/home/deploy/{{ ansible_local.cloudformation.autoscale.app_name }}/shared/log owner=deploy group=deploy force=yes state=link

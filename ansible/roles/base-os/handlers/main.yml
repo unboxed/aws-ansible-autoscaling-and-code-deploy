@@ -1,0 +1,5 @@
+- name: reset hostname
+  action: command hostname -b -F /etc/hostname
+
+- name: restart awslogs
+  action: service name=awslogs state=restarted enabled=yes

@@ -1,0 +1,24 @@
+# {{ ansible_managed }}
+#
+# Values in this file come from the custom facts file created by
+# /etc/ansible/facts.d/cloudformation.fact and app.fact
+
+# If you want all items as environment variables, you can enable the below.
+# However, I've been more selective here, and am building env variables for
+# only the things I specifically want
+#
+# Possible values - check app-env-vars.j2 on how to enable:
+# {% for key, value in ansible_local.cloudformation.autoscale.items() %}
+# export {{ key.upper() }}='{{ value }}'
+# {% endfor %}
+
+# Facts from ansible_local.cloudformation.autoscale:
+export DATABASE_URL="postgres://{{ ansible_local.cloudformation.autoscale.db_user }}:{{ ansible_local.cloudformation.autoscale.db_password }}@{{ ansible_local.cloudformation.autoscale.db_host }}:{{ ansible_local.cloudformation.autoscale.db_port }}/{{ ansible_local.cloudformation.autoscale.db_name }}"
+export ENVIRONMENT_NAME="{{ ansible_local.cloudformation.autoscale.environment_name }}"
+export SERVER_TYPE="{{ ansible_local.cloudformation.autoscale.environment_name }}"
+
+# ansible_local.app.app_environment items
+# Note that all items here will be automatically upper-cased
+{% for key, value in ansible_local.app.app_environment.items() %}
+export {{ key.upper() }}='{{ value }}'
+{% endfor %}

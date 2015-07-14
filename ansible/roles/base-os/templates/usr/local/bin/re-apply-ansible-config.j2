@@ -1,0 +1,29 @@
+#/usr/bin/bash
+
+ANSIBLE_CONFIG_PACKAGE=server-autoscale-latest.tar.gz
+RELEASE_LOCATION=s3://{{ ansible_local.cloudformation.autoscale.releases_bucket }}
+
+echo << EOMSG
+
+This is ONLY for testing - you should not need to run it in production.
+You can use it for situations where you want to download and apply the
+latest ansible configs to a machine where you are testing things.
+
+If you encounter a problem in production, the correct process should be to
+terminate the box and replace it with a new instance.
+
+EOMSG
+
+set -x
+set -e
+
+rm -rf /tmp/re-apply-ansible-config
+mkdir /tmp/re-apply-ansible-config
+cd /tmp/re-apply-ansible-config
+
+aws s3 cp --region {{ aws_region }} ${RELEASE_LOCATION}/${ANSIBLE_CONFIG_PACKAGE} ${ANSIBLE_CONFIG_PACKAGE}
+tar zxf ${ANSIBLE_CONFIG_PACKAGE}
+
+cd ansible
+ansible-playbook -vv -i localhost, -c local {{ ansible_local.cloudformation.autoscale.server_type }}.yml $*
+

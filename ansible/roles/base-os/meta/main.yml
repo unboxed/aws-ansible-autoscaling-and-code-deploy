@@ -1,0 +1,5 @@
+dependencies:
+  - { role: ansible-apt, tags: common }
+  - { role: ansible-ssh-server, tags: ansible-ssh-server }
+  - { role: resmo.ntp, tags: resmo-ntp }
+  - { role: unboxed.pumacorn, tags: unboxed.pumacorn }

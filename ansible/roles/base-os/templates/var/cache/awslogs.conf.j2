@@ -1,0 +1,70 @@
+[general]
+state_file = /var/awslogs/state/agent-state
+
+{% for log in awslogs_ubuntu_logs %}
+[{{ log.file }}]
+file = {{ log.file }}
+log_group_name = {{ ansible_local.cloudformation.autoscale.environment_name }}-{{ ansible_local.cloudformation.autoscale.server_type }}-os-logs
+log_stream_name = {instance_id}
+datetime_format = {{ log.datetime_format }}
+
+{% endfor %}
+
+# RAILS
+[/log/rails/production.log]
+file = /log/rails/production.log
+log_group_name = {{ ansible_local.cloudformation.autoscale.environment_name }}-{{ ansible_local.cloudformation.autoscale.server_type }}-rails-logs
+log_stream_name = {instance_id}
+datetime_format = %b %d %H:%M:%S
+
+################################################################################
+# NGINX - App access log:
+################################################################################
+[/log/nginx/{{ ansible_local.app.general.webserver_hostname }}-access.log]
+file = /log/nginx/{{ ansible_local.app.general.webserver_hostname }}-access.log*
+log_group_name = nginx-access-logs
+log_stream_name = {instance_id}
+# 2015/07/14 20:08:49
+datetime_format = %Y/%M/%Y %H:%M:%S
+
+[/log/nginx/{{ ansible_local.app.general.webserver_hostname }}-error.log]
+file = /log/nginx/{{ ansible_local.app.general.webserver_hostname }}-error.log*
+log_group_name = nginx-error-logs
+log_stream_name = {instance_id}
+# 14/Jul/2015:21:12:37
+datetime_format = %D/%m/%Y:%H:%M:%S
+
+################################################################################
+# NGINX - default site access log:
+################################################################################
+[/log/nginx/defaultserver-access.log]
+file = /log/nginx/defaultserver-access.log*
+log_group_name = nginx-access-logs
+log_stream_name = {instance_id}
+# 2015/07/14 20:08:49
+datetime_format = %Y/%M/%Y %H:%M:%S
+
+[/log/nginx/defaultserver-error.log]
+file = /log/nginx/defaultserver-error.log*
+log_group_name = nginx-error-logs
+log_stream_name = {instance_id}
+# 14/Jul/2015:21:12:37
+datetime_format = %D/%m/%Y:%H:%M:%S
+
+################################################################################
+# NGINX - access.log and error.log - just in case something doesn't fall into
+# the above two
+################################################################################
+[/log/nginx/access.log]
+file = /log/nginx/access.log*
+log_group_name = nginx-access-logs
+log_stream_name = {instance_id}
+# 2015/07/14 20:08:49
+datetime_format = %Y/%M/%Y %H:%M:%S
+
+[/log/nginx/error.log]
+file = /log/nginx/error.log*
+log_group_name = nginx-error-logs
+log_stream_name = {instance_id}
+# 14/Jul/2015:21:12:37
+datetime_format = %D/%m/%Y:%H:%M:%S

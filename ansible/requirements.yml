@@ -1,0 +1,11 @@
+- src: https://github.com/resmo/ansible-role-ntp.git
+  version: 0.4.0
+  name: resmo.ntp
+- src: unboxed.pumacorn
+  version: v0.1.9
+- src: https://github.com/yetu/ansible-apt.git
+  version: v0.1.5
+  name: ansible-apt
+- src: https://github.com/unboxed/ansible-ssh-server.git
+  version: v1.0.3
+  name: ansible-ssh-server

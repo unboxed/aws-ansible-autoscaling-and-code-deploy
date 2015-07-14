@@ -1,0 +1,19 @@
+# AWSLogs doesn't appear to be configurable just by rewriting it's config file,
+# so we write a cache of the awslogs.conf file to /var/cache, and then we
+# re-run the agent setup if necessary
+
+- name: AWSLogs | Generate awslogs config file
+  template: src=../templates/var/cache/awslogs.conf.j2 dest=/var/cache/awslogs.conf owner=root group=root mode=0600
+  register: awslogs_config_file
+  tags: awslogs
+
+- name: AWSLogs | Fetch awslogs-agent-setup.py
+  get_url: dest=/usr/local/bin/awslogs-agent-setup.py url=https://s3.amazonaws.com/aws-cloudwatch/downloads/latest/awslogs-agent-setup.py owner=root group=root mode=0700
+  register: awslogs_agent_setup
+  tags: awslogs
+
+- name: AWSLOGS | reconfigure awslogs
+  when: awslogs_config_file.changed or awslogs_config_file.changed
+  action: command /usr/local/bin/awslogs-agent-setup.py -n -r {{ aws_region }} -c /var/cache/awslogs.conf
+  notify: restart awslogs
+  tags: awslogs

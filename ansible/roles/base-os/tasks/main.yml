@@ -1,0 +1,73 @@
+---
+# Don't let services autostart on 'apt-get install', so that the services
+# don't come up part-configureds
+- include: disable-autostart.yml
+
+################################################################################
+# Initialisation - make sure all facts are up to date, and that we
+# have the correct working directories and latest inventory info
+################################################################################
+
+- name: Install required packages for AWS and Ansible
+  apt: name={{ item }}
+  with_items:
+    - python-boto
+
+# Fetch app-specific facts from the S3 bucket
+- name: Copy app-specific facts from S3 bucket
+  s3: bucket={{ ansible_local.cloudformation.autoscale.releases_bucket }} object=/app.fact dest=/etc/ansible/facts.d/app.fact mode=get
+  changed_when: false
+
+- name: Reload facts after fetching app-specific facts
+  action: setup
+
+# Fetch ec2 facts - so that we know our EC2 instance ID etc
+- name: Gather EC2 facts
+  action: ec2_facts
+
+- name: Create Working Directory
+  file: state=directory name={{ autoscale_work_dir }} owner=root group=root mode=700
+
+################################################################################
+# Base System
+################################################################################
+# Set the hostname and /etc/hosts to something consistent with aws
+- include: hostname-from-aws.yml
+
+# Improve networking performance for heavy server usage
+- include: sysctls.yml
+
+################################################################################
+# Logging
+################################################################################
+# Create EBS storage for logs
+- include: create-ebs-devices.yml
+
+# Install AWS Log forwarder
+- include: install-awslogs.yml
+
+################################################################################
+# We use the ansible-apt package to manage applying security upgrades to the
+# server.
+#
+# HOWEVER: the role tries to reboot the box if upgrade_now is set, which
+# interrupts the server configuration process.
+#
+# We thus disable upgrade_now in settings, and then run apt-get upgrade ourselves.
+#
+- name: apt-upgrade dist
+  apt: upgrade=dist update_cache=yes cache_valid_time=3600
+  ignore_errors: true
+
+# Useful Packages
+- include: useful-packages.yml
+
+################################################################################
+# Cleanup
+################################################################################
+#
+# Add the re-apply-ansible-config script, to allow us to fetch
+# the latest config and apply it manually.
+#
+- name: Pre-App Config | Create re-apply-ansible-config file
+  template: src=usr/local/bin/re-apply-ansible-config.j2 dest=/usr/local/bin/re-apply-ansible-config owner=root group=root mode=0755
