@@ -1,0 +1,305 @@
+#! /bin/bash
+
+# {{ ansible_managed }}
+# Manual customization of this file is not recommended.
+
+# Heavily inspired by: https://github.com/gitlabhq/gitlabhq
+
+### BEGIN INIT INFO
+# Provides:          {{ rails_deploy_app_name }}
+# Required-Start:    $local_fs $remote_fs $network
+# Required-Stop:     $local_fs $remote_fs $network
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Manage a rails web server process
+# Description:       Manage a rails web server process
+### END INIT INFO
+
+# ---------------------------------------------------------------------------
+# configuration options
+# ---------------------------------------------------------------------------
+app_name="{{ rails_deploy_app_name }}"
+app_user="{{ rails_deploy_user }}"
+app_root="{{ rails_deploy_path }}"
+app_current="{{ rails_deploy_path }}/current"
+
+if [ "{{ pumacorn_server }}" = "puma" ]; then
+  server_config_flag="C"
+  server_daemon_flag="d"
+  server_reload_signal="USR1"
+else
+  server_config_flag="c"
+  server_daemon_flag="D"
+  server_reload_signal="USR2"
+fi
+
+server_path="{{ pumacorn_server }}"
+bundle="{{ rails_deploy_bundle }}"
+
+pid_path="$app_root/shared/pids"
+socket_path="$app_root/shared"
+
+if [ ! -e /var/run/pumacorn ]; then
+  mkdir -p /var/run/pumacorn
+  chown deploy:www-data /var/run/pumacorn
+  chmod 0770 /var/run/pumacorn
+fi
+
+web_server_pid_path="$pid_path/{{ pumacorn_server }}.pid"
+web_server_socket_path="$socket_path/{{ pumacorn_server }}.socket"
+web_server_config_switch="-$server_config_flag {{ pumacorn_config_path }}"
+web_server_stop_switch="-QUIT"
+web_server_reload_switch="-$server_reload_signal"
+
+# ---------------------------------------------------------------------------
+# source the environment, ensure correct user, switch into the app's path
+# ---------------------------------------------------------------------------
+if ! . /etc/default/"$app_name" ; then
+ echo "failed to source environment for $app_name, exiting"; exit 1;
+fi
+
+if [ "$USER" != "$app_user" ]; then
+  eval su - "$app_user" -c $(echo \")$0 "$@"$(echo \"); exit;
+fi
+
+if ! cd "$app_current" ; then
+ echo "failed to cd into $app_root, exiting"; exit 1;
+fi
+
+# ---------------------------------------------------------------------------
+# private commands related to {{ rails_deploy_app_name }}
+# ---------------------------------------------------------------------------
+web_server_start(){
+  $bundle exec $server_path $web_server_config_switch -$server_daemon_flag
+}
+
+web_server_stop(){
+  kill $web_server_stop_switch $wpid
+}
+
+web_server_reload(){
+  kill $web_server_reload_switch $wpid
+}
+
+# ---------------------------------------------------------------------------
+# get the pid from the file
+# ---------------------------------------------------------------------------
+check_pids(){
+  if ! mkdir -p "$pid_path"; then
+    echo "could not create the path $pid_path needed to store the pids"; exit 1
+  fi
+  if [ -f "$web_server_pid_path" ]; then
+    # read an existing pid file
+    wpid=$(cat "$web_server_pid_path")
+  else
+    wpid=0
+  fi
+}
+
+# ---------------------------------------------------------------------------
+# used after starting the app service and are waiting for its pid
+# ---------------------------------------------------------------------------
+wait_for_pids(){
+  # sleep for a bit to give it time
+  i=0;
+  while [ ! -f $web_server_pid_path ]; do
+    sleep 0.1;
+    i=$((i+1))
+    if [ $((i%10)) = 0 ]; then
+      echo -n "."
+    elif [ $((i)) = 301 ]; then
+      echo "waited 30s for the process to write its pid, something went wrong, exiting"
+      exit 1;
+    fi
+  done
+  echo
+}
+
+# ---------------------------------------------------------------------------
+# always check the pid
+# ---------------------------------------------------------------------------
+check_pids
+
+# ---------------------------------------------------------------------------
+# determine if the app process is running or not
+# ---------------------------------------------------------------------------
+check_status(){
+  check_pids
+
+  # if the web server is running kill -0 $web_server_pid returns true, or rather 0
+  # checks of *_status should only check for == 0 or != 0, never anything else
+  if [ $wpid -ne "0" ]; then
+    kill -0 "$wpid" 2>/dev/null
+    web_server_status="$?"
+  else
+    web_server_status="-1"
+  fi
+  if [ $web_server_status = 0 ]; then
+    exit_status=0
+  else
+    # http://refspecs.linuxbase.org/LSB_4.1.0/LSB-Core-generic/LSB-Core-generic/iniscrptact.html
+    # code 3 means 'program is not running'
+    exit_status=3
+  fi
+}
+
+# ---------------------------------------------------------------------------
+# check for stale pids and remove them if necessary
+# ---------------------------------------------------------------------------
+check_stale_pids(){
+  check_status
+  # if there is a pid it is something else than 0, the service is running if
+  # *_status is == 0
+  if [ "$wpid" != "0" -a "$web_server_status" != "0" ]; then
+    echo "removing stale $app_name pid, this is most likely caused by $app_name crashing the last time it ran"
+    if ! rm "$web_server_pid_path"; then
+      echo "unable to remove stale pid, exiting"
+      exit 1
+    fi
+  fi
+}
+
+# ---------------------------------------------------------------------------
+# nothing is running so it is safe to exit
+# ---------------------------------------------------------------------------
+exit_if_not_running(){
+  check_stale_pids
+  if [ "$web_server_status" != "0" ]; then
+    echo "$app_name is not running"
+    exit
+  fi
+}
+
+# ---------------------------------------------------------------------------
+# start the app process if it is not running
+# ---------------------------------------------------------------------------
+start_app() {
+  check_stale_pids
+
+  if [ "$web_server_status" != "0" ]; then
+    echo -n "starting $app_name"
+  fi
+
+  # then check if the service is running
+  # if it is, don't start again
+  if [ "$web_server_status" = "0" ]; then
+    echo "$app_name is already running with pid $wpid, not restarting"
+  else
+    # remove old socket if it exists before starting
+    rm -f "$web_server_socket_path" 2>/dev/null
+    web_server_start
+  fi
+
+  # wait for the pids to be planted
+  wait_for_pids
+
+  # finally check the status to tell wether or not the app process is running
+  print_status
+}
+
+# ---------------------------------------------------------------------------
+# stop the app process if it is running
+# ---------------------------------------------------------------------------
+stop_app() {
+  exit_if_not_running
+
+  # if the app process is running, stop it
+  if [ "$web_server_status" = "0" ]; then
+    echo -n "shutting down $app_name"
+    web_server_stop
+  fi
+
+  # if something needs to be stopped, wait for it because using SIGKILL is bad in a script
+  while [ "$web_server_status" = "0" ]; do
+    sleep 1
+    check_status
+    printf "."
+    if [ "$web_server_status" != "0" ]; then
+      printf "\n"
+      break
+    fi
+  done
+
+  sleep 1
+
+  # clean up the pid file
+  rm "$web_server_pid_path" 2>/dev/null
+
+  print_status
+}
+
+# ---------------------------------------------------------------------------
+# output the status of this app process
+# ---------------------------------------------------------------------------
+print_status() {
+  check_status
+  if [ "$web_server_status" != "0" ]; then
+    echo "$app_name is not running"
+    return
+  fi
+  if [ "$web_server_status" = "0" ]; then
+      echo "$app_name with pid $wpid is running"
+  else
+      printf "$app_name is \033[31mnot running\033[0m\n"
+  fi
+  if [ "$web_server_status" = "0" ]; then
+    printf "$app_name is \033[32mup and running\033[0m\n"
+  fi
+}
+
+# ---------------------------------------------------------------------------
+# reload the app process
+# ---------------------------------------------------------------------------
+reload_app(){
+  exit_if_not_running
+  if [ "$wpid" = "0" ];then
+    echo "$app_name is not running, its configuration can't be reloaded, exiting"
+    exit 1
+  fi
+  printf "reloading $app_name configuration..."
+  web_server_reload
+  echo "done!"
+
+  wait_for_pids
+  print_status
+}
+
+# ---------------------------------------------------------------------------
+# restart the app process by stopping it and then starting it
+# ---------------------------------------------------------------------------
+restart_app(){
+  check_status
+  if [ "$web_server_status" = "0" ]; then
+    stop_app
+  fi
+  start_app
+}
+
+# ---------------------------------------------------------------------------
+# handle the input
+# ---------------------------------------------------------------------------
+case "$1" in
+  start)
+        start_app
+        ;;
+  stop)
+        stop_app
+        ;;
+  restart)
+        restart_app
+        ;;
+  reload|force-reload)
+        reload_app
+        ;;
+  status)
+        print_status
+        exit $exit_status
+        ;;
+  *)
+        echo "Usage: service $app_name {start|stop|restart|reload|status}"
+        exit 1
+        ;;
+esac
+
+exit
+

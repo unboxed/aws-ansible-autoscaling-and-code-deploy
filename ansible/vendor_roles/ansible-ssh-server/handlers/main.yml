@@ -1,0 +1,4 @@
+---
+- name: restart ssh
+  action: command service ssh restart
+  ignore_errors: yes

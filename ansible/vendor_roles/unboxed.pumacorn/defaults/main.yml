@@ -1,0 +1,3 @@
+pumacorn_server: puma
+pumacorn_config_path: "{{ rails_deploy_path }}/current/config/{{ pumacorn_server }}.rb"
+pumacorn_force_restart: false

@@ -1,0 +1,19 @@
+---
+galaxy_info:
+  author: Nick Janetakis
+  description: Manage either a puma or unicorn rails process with init.d.
+  company: 
+  license: license (MIT)
+  min_ansible_version: 1.5
+
+  platforms:
+  - name: Ubuntu
+    versions:
+    - all
+
+  categories:
+  - system
+  - web
+  - development
+
+dependencies: []

@@ -1,0 +1,32 @@
+---
+language: "python"
+python: "2.7"
+
+env:
+  - SITE_AND_INVENTORY="tests/test.yml -i tests/inventory"
+
+before_install:
+  - "__rvm_unload ; rm -rf ~/.rvm"
+  - "ssh-keygen -t rsa -P '' -f /tmp/id_rsa"
+
+install:
+  - "pip install ansible==1.6.2"
+  - "printf '[defaults]\nroles_path = ../' > ansible.cfg"
+  - "ansible-galaxy install nickjj.ruby nickjj.rails --force"
+
+script:
+  - "git config --global user.email 'foo@bar.com' && git config --global user.name 'Foo Bar'"
+  - "cd tests/railsapp && git init && git add -A && git commit -m 'Initial commit' && cd -"
+  - "ansible-playbook $SITE_AND_INVENTORY --syntax-check"
+  - "ansible-playbook $SITE_AND_INVENTORY --connection=local -vvvv"
+  - >
+    ansible-playbook $SITE_AND_INVENTORY --connection=local
+    | grep -q 'changed=0.*failed=0'
+    && (echo 'Idempotence test: pass' && exit 0)
+    || (echo 'Idempotence test: fail' && exit 1)
+  - "sudo service app status"
+  - >
+    curl -s -o /dev/null -w "%{http_code}" http://localhost:3000
+    | grep -q '200'
+    && (echo 'HTTP test: pass' && exit 0)
+    || (echo 'HTTP test: fail' && exit 1)

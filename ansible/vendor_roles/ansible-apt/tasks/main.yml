@@ -1,0 +1,9 @@
+---
+
+- include: apt.yml
+
+- include: unattended.yml
+  when: unattended_install
+
+- include: upgrade_now.yml
+  when: upgrade_now

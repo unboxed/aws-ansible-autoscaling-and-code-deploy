@@ -1,0 +1,14 @@
+---
+dependencies: []
+galaxy_info:
+  author: Oskar Pearson
+  description: SSH server configuration
+  company: Unboxed Consulting
+  license: MIT
+  min_ansible_version: 1.9.1
+  platforms:
+    - name: Ubuntu
+      versions:
+        - trusty
+  categories:
+    - system

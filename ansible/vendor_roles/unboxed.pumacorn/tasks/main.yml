@@ -1,0 +1,10 @@
+---
+- name: make socket directory /var/run/pumacorn
+  file: state=directory name=/var/run/pumacorn owner=deploy group=www-data mode=770
+
+- name: ensure pumacorn init.d config is created
+  template: src=initd_pumacorn.j2 dest=/etc/init.d/{{ rails_deploy_app_name }} mode=0755
+
+- name: ensure pumacorn starts on a fresh reboot
+  service: name={{ rails_deploy_app_name }} enabled=yes
+

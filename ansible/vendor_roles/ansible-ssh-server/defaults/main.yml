@@ -1,0 +1,6 @@
+---
+sshd_config_allow_agent_forwarding: false
+sshd_config_permit_root_login: false
+sshd_config_password_authentication: false
+sshd_config_x11_forwarding: false
+sshd_config_banner_file: false

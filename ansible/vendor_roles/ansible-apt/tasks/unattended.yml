@@ -1,0 +1,24 @@
+---
+- name: unattended | Install unattended-upgrades package
+  apt:
+    pkg=unattended-upgrades
+    state=present
+  tags: unattended-upgrades
+
+- name: unattended | Copy 20auto-upgrades conf file
+  copy:
+    src=20auto-upgrades
+    dest=/etc/apt/apt.conf.d/20auto-upgrades
+    owner=root
+    group=root
+    mode=644
+  tags: unattended-upgrades
+
+- name: unattended | Copy 50unattended-upgrades conf file
+  template:
+    src=50unattended-upgrades
+    dest=/etc/apt/apt.conf.d/50unattended-upgrades
+    owner=root
+    group=root
+    mode=644
+  tags: unattended-upgrades

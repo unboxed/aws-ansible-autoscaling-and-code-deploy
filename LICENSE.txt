@@ -1,0 +1,68 @@
+################################################################################
+# Base Code
+################################################################################
+
+The MIT License (MIT)
+
+Copyright (c) 2015 Unboxed Consulting
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+
+################################################################################
+# Additional items
+################################################################################
+
+Various other items in this repository are under a different License. Please
+see their individual licenses for more information.
+
+# Ansible Package
+
+vendor/os-packages/ansible_1.9.1-1ppa~trusty_all.deb is released under the GNU
+GENERAL PUBLIC LICENSE version 3. See
+https://github.com/ansible/ansible/commit/8914a1a0d737b07c5a0c378e8dc3ab9620b43b
+3d#diff-7116ef0705885343c9e1b2171a06be0e for more information
+
+# Ansible-Apt Role
+
+The ansible/vendor_roles/ansible-apt code is BSD License Copyright 2014 yetu
+See ansible/vendor_roles/ansible-apt/LICENSE.md for more details
+
+# Ansible-SSH-Server Role
+
+The ansible/vendor_roles/ansible-ssh-server code is MIT Licence Copyright
+Unboxed Consulting 2015. See ansible/vendor_roles/ansible-ssh-server/LICENSE
+for more details.
+
+# Respo.NTP role
+
+The ansible/vendor_roles/resmo.ntp code is BSD License Copyright Benno Joy and
+René Moser. See ansible/vendor_roles/resmo.ntp/README.md for more details.
+
+# Unboxed.pumacorn role
+
+The ansible/vendor_roles/unboxed.pumacorn code is MIT License Copyright Nick
+Janetakis (nickjj) and Unboxed Consulting. See
+https://github.com/unboxed/ansible-pumacorn/blob/master/meta/main.yml for
+more details.
+
+# Profile Tasks Ansible Plugin
+
+The profile tasks Ansible plugin is copyright Jharrod LaFon. See
+ansible/callback_plugins/profile_tasks.py for the full copyright of that item.

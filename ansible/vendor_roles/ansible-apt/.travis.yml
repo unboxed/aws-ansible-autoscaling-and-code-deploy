@@ -1,0 +1,19 @@
+---
+language: python
+python: "2.7"
+before_install:
+  - sudo apt-get update -qq
+  - sudo apt-get install -qq python-apt python-pycurl
+install:
+  - pip install ansible
+script:
+  - export ANSIBLE_ROLES_PATH="../"
+  - echo localhost > inventory
+  - ansible-playbook -i inventory --syntax-check test.yml
+  - ansible-playbook -i inventory --connection=local --sudo -vvvv test.yml
+  # Run the role/playbook again, checking to make sure it's idempotent
+  - >
+    ansible-playbook -i inventory --connection=local --sudo test.yml
+    | grep -q 'changed=0.*failed=0'
+    && (echo 'Idempotence test: pass' && exit 0)
+    || (echo 'Idempotence test: fail' && exit 1)
