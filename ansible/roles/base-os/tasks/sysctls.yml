@@ -9,6 +9,8 @@
 - name: Network performance sysctls
   sysctl: name="{{ item.name }}" value="{{ item.value }}" sysctl_set=yes
   with_items:
+    - { name: fs.file-max, value: 1200000 }
+
     - { name: net.core.rmem_max, value: 16777216 }
     - { name: net.core.wmem_max, value: 16777216 }
 
@@ -21,3 +23,17 @@
     - { name: net.ipv4.tcp_max_syn_backlog, value: 8096 }
     - { name: net.ipv4.tcp_slow_start_after_idle, value: 0 }
     - { name: net.ipv4.tcp_tw_reuse, value: 1 }
+
+# The rails app / Puma runs as the deploy user, which means that the filedescriptor
+# counts are limited by the limits.conf file. This becomes the limiting factor
+# in many cases
+- name: Increase filedescriptor limits
+  lineinfile: dest=/etc/security/limits.conf create=yes owner=root group=root mode=0644 line="{{ item }}"
+  with_items:
+    - "deploy           -       nofile        80000"
+    - "deploy           hard    nofile        100000"
+
+# Make 'su' honour /etc/security/limits.conf, so that running "su - deploy startup-command" will
+# have the right fildescriptor limits
+- name: PAM - enable /etc/security/limits.conf
+  lineinfile: dest=/etc/pam.d/su regexp='# session    required   pam_limits.so' line='session    required   pam_limits.so'
