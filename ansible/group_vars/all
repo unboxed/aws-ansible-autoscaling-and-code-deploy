@@ -4,7 +4,7 @@
 
 # Where the stack is going to run. Note that if you want to change this,
 # you will need to modifty stack.json and other files in this repository too
-aws_region: eu-west-1
+aws_region: us-east-1
 
 # Where we store temporary working files. These files can contain confidential
 # information, so we want them somewhere very limited. /root/ works ok for this,
