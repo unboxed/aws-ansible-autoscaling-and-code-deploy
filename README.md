@@ -130,7 +130,7 @@ against you. So you need to strip out the whitespace before doing the upload.
 The simplest way to do this is to use jq:
 
 1. Make sure you have the 'jq' app installed (```brew install jq``` on a mac with Homebrew)
-2. Compact the CloudFormation config on the command line with the command ```jq < stack.json > stack-compact.json```.
+2. Compact the CloudFormation config on the command line with the command ```jq < stack.json -cMa . > stack-compressed.json```.
 
 
 Log into the AWS web console and make sure you are in the 'Ireland'
