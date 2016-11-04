@@ -4,7 +4,7 @@
 
 [general]
 # Used by Nginx - used for setting the sitename and redirecting to SSL etc
-webserver_hostname=blog-dev.example.com
+webserver_hostname=skoutsec.org
 
 ################################################################################
 # Environment variables set before running the application

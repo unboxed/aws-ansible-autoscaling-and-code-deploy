@@ -7,18 +7,20 @@ if [[ -z "$1" || -z "$2" || -z "$2" || "$1" == "--help" ]]; then
   exit
 fi
 
+PROFILE=$4
+
 BUCKET="$1-$2-$3-releases"
 
 echo "Copying fact files to S3"
-aws s3 cp --recursive facts/$3/ s3://${BUCKET}/
+aws --profile $PROFILE s3 cp --recursive facts/$3/ s3://${BUCKET}/
 
 echo "Copying vendor files to S3"
-aws s3 cp --recursive vendor/ s3://${BUCKET}/
+aws --profile $PROFILE s3 cp --recursive vendor/ s3://${BUCKET}/
 
 echo "Copying Ansible config to S3"
 TMPFILE=$(mktemp /tmp/push-config-to-s3-tar-XXXXXXXXXXXX).tar.gz
 tar zcf ${TMPFILE} ansible/
-aws s3 cp ${TMPFILE} s3://${BUCKET}/server-autoscale-latest.tar.gz
+aws --profile $PROFILE s3 cp ${TMPFILE} s3://${BUCKET}/server-autoscale-latest.tar.gz
 
 rm -f ${TMPFILE}
 echo "SUCCESS"

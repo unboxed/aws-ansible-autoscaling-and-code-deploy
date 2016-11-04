@@ -26,7 +26,7 @@ has more information.
 To try and keep this as simple as possible, I've made various assumptions about
 your environment.
 
-1. We only currently support the EU-WEST-1 region (Ireland). A
+1. We only currently support the us-east-1 region (Ireland). A
   search-and-replace should fix that.
 2. This repository only supports Ubuntu 14.04
 3. You want O/S security upgrades applied everywhere automatically. (See the
@@ -49,14 +49,14 @@ your environment.
   http://docs.aws.amazon.com/cli/latest/userguide/installing.html for more
   details)
 2. Create AWS account or sub-account.
-   - Ensure you are in eu-west-1
+   - Ensure you are in us-east-1
    - Create and download an ssh key - http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html
       (Note that you will not normally use this - it's only for failsafe purposes if the
       Ansible build scripts fail.)
    - Get AWS Access Key ID and Access Secret Keys - see https://console.aws.amazon.com/iam/home?#security_credential
 3. On your command line, set these environment variables (assuming the bash shell)
 
-        export AWS_DEFAULT_REGION='eu-west-1'
+        export AWS_DEFAULT_REGION='us-east-1'
         export AWS_ACCESS_KEY_ID='AKI...'
         export AWS_SECRET_ACCESS_KEY='...'
 
@@ -78,7 +78,7 @@ I've included a simple cloudformation stack to create the buckets for you. To
 use it:
 
 Log into the AWS web console and make sure you are in the 'Ireland'
-(EU-West-1) region. Then:
+(us-east-1) region. Then:
 
 1. Click on the "Cloudformation" service
 2. Click "Create Stack"
@@ -111,7 +111,7 @@ variables it needs, and similar.
 ## Upload the Ansible Configs
 
 ```shell
-$ export AWS_DEFAULT_REGION='eu-west-1'
+$ export AWS_DEFAULT_REGION='us-east-1'
 $ export AWS_ACCESS_KEY_ID='AKI...'
 $ export AWS_SECRET_ACCESS_KEY='...'
 $ # Upload the ansible config - note that you must pass parameters that match
@@ -130,11 +130,11 @@ against you. So you need to strip out the whitespace before doing the upload.
 The simplest way to do this is to use jq:
 
 1. Make sure you have the 'jq' app installed (```brew install jq``` on a mac with Homebrew)
-2. Compact the CloudFormation config on the command line with the command ```jq < stack.json > stack-compact.json```.
+2. Compact the CloudFormation config on the command line with the command ```jq < stack.json -cMa . > stack-compressed.json```.
 
 
 Log into the AWS web console and make sure you are in the 'Ireland'
-(EU-West-1) region. Then:
+(us-east-1) region. Then:
 
 1. Click on the "Cloudformation" service
 2. Click "Create Stack"
@@ -190,7 +190,7 @@ Log into the AWS web console and make sure you are in the 'Ireland'
     style kernel. To reduce the time spent applying security upgrades, and to avoid
     requiring a reboot when the kernel upgrades, you should keep this current with
     the latest daily Ubuntu AMI build. You will need to choose an AMI related to
-    your chosen region. By default this is eu-west-1
+    your chosen region. By default this is us-east-1
   - SSHKeyName: Select your SSH key from the dropdown. For your first trial run
     you will use this key to ssh in - but in the Next Steps section of this
     document we will move to individual accounts.
@@ -227,7 +227,7 @@ the EC2 console.
 Once the app has been built, create a CodeDeploy configuration.
 
 Log into the AWS web console and make sure you are in the 'Ireland'
-(EU-West-1) region. Then:
+(us-east-1) region. Then:
 
 1. Services -> CodeDeploy
 2. Create a new CodeDeploy config ("Get Started Now")
@@ -252,7 +252,7 @@ checked-out git copy of http://github.com/unboxed/aws-ansible-autoscaling-and-co
 
 ```shell
 $ # These should be set from earlier:
-$ export AWS_DEFAULT_REGION='eu-west-1'
+$ export AWS_DEFAULT_REGION='us-east-1'
 $ export AWS_ACCESS_KEY_ID='AKI...'
 $ export AWS_SECRET_ACCESS_KEY='...'
 $ # Upload the app itself - note that you must pass the parameter that matches
@@ -274,7 +274,7 @@ a DNS record as per http://docs.aws.amazon.com/ElasticLoadBalancing/latest/Devel
 
 To locate the DNS name of the Load Balancer, go to the AWS console, select EC2,
 select Load Balancers, and select the Load balancer. You will see "DNS Name"
-listed in the bottom section - something like 'blog-somethingoverhere-123123123.eu-west-1.elb.amazonaws.com'
+listed in the bottom section - something like 'blog-somethingoverhere-123123123.us-east-1.elb.amazonaws.com'
 
 If you want to test from the command line, grab the hostname of the Elastic
 Load Balancer, and run curl. You should see the rails app response. You'll need
@@ -282,7 +282,7 @@ to make sure that the hostname matches the value you set in the
 ```webserver_hostname``` parameter of ```facts/dev/app.fact```
 
 ```
-curl -k -H 'Host: blog-dev.example.com' https://blog-dev-123123123.eu-west-1.elb.amazonaws.com
+curl -k -H 'Host: blog-dev.example.com' https://blog-dev-123123123.us-east-1.elb.amazonaws.com
 ```
 
 # Next Steps

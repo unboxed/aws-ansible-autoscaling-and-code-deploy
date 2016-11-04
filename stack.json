@@ -114,7 +114,7 @@
             "ConstraintDescription": "must contain only alphanumeric characters."
         },
         "ServerAMIID": {
-            "Description": "The Ubuntu AMI to use as the server base - use latest hvm-ssd for eu-west-1 from http://cloud-images.ubuntu.com/trusty/current/",
+            "Description": "The Ubuntu AMI to use as the server base - use latest hvm-ssd for us-east-1 from http://cloud-images.ubuntu.com/trusty/current/",
             "Type": "String",
             "ConstraintDescription": "Must be a valid AMI ID",
             "MinLength": "1"
@@ -235,7 +235,7 @@
                 "Comment2": "Using this subnet for a service later on will then place it in this Availability Zone"
             },
             "Properties": {
-                "AvailabilityZone": "eu-west-1a",
+                "AvailabilityZone": "us-east-1a",
                 "CidrBlock": "10.0.1.0/24",
                 "Tags": [
                     {
@@ -268,7 +268,7 @@
                 "Comment1": "Our second server subnet. See the comment on ServerSubnetWest1A for more details"
             },
             "Properties": {
-                "AvailabilityZone": "eu-west-1b",
+                "AvailabilityZone": "us-east-1b",
                 "CidrBlock": "10.0.2.0/24",
                 "Tags": [
                     {
@@ -298,7 +298,7 @@
                 "Comment1": "Subnet where our database can live (it may live in multiple zones if multi-az was selected)"
             },
             "Properties": {
-                "AvailabilityZone": "eu-west-1a",
+                "AvailabilityZone": "us-east-1a",
                 "CidrBlock": "10.0.10.0/24",
                 "Tags": [
                     {
@@ -331,7 +331,7 @@
                 "Comment1": "Second subnet where our database could live (See See comment on DBSubnetWest1A for more details)"
             },
             "Properties": {
-                "AvailabilityZone": "eu-west-1b",
+                "AvailabilityZone": "us-east-1b",
                 "CidrBlock": "10.0.11.0/24",
                 "Tags": [
                     {
@@ -501,7 +501,7 @@
                 "Comment1": "Elastic Load Balancer network - we place the ELB on multiple separate networks in their own IP ranges"
             },
             "Properties": {
-                "AvailabilityZone": "eu-west-1a",
+                "AvailabilityZone": "us-east-1a",
                 "CidrBlock": "10.0.30.0/24",
                 "Tags": [
                     {
@@ -534,7 +534,7 @@
                 "Comment1": "The second Elastic Load Balancer network"
             },
             "Properties": {
-                "AvailabilityZone": "eu-west-1b",
+                "AvailabilityZone": "us-east-1b",
                 "CidrBlock": "10.0.31.0/24",
                 "Tags": [
                     {
@@ -703,7 +703,7 @@
                             "Effect": "Allow",
                             "Principal": {
                                 "Service": [
-                                    "codedeploy.eu-west-1.amazonaws.com"
+                                    "codedeploy.us-east-1.amazonaws.com"
                                 ]
                             },
                             "Action": "sts:AssumeRole"
@@ -811,7 +811,7 @@
                                 "s3:Get*",
                                 "s3:List*"
                             ],
-                            "Resource": "arn:aws:s3:::aws-codedeploy-eu-west-1/*"
+                            "Resource": "arn:aws:s3:::aws-codedeploy-us-east-1/*"
                         },
                         {
                             "Effect": "Allow",
@@ -1045,9 +1045,9 @@
                                 "# so that we don't go into service unless we're secure",
                                 "################################################################################",
                                 "",
-                                "# eu-west-1.ec2.archive.ubuntu.com gets incredibly slow at times, so",
+                                "# us-east-1.ec2.archive.ubuntu.com gets incredibly slow at times, so",
                                 "# use the standard url instead",
-                                "sed -i /etc/apt/sources.list -e 's/eu-west-1.ec2.archive.ubuntu.com/archive.ubuntu.com/g'",
+                                "sed -i /etc/apt/sources.list -e 's/us-east-1.ec2.archive.ubuntu.com/archive.ubuntu.com/g'",
                                 "#",
                                 "apt-get update",
                                 "apt-get -y upgrade",
@@ -1203,7 +1203,7 @@
                                 "# Sometimes permissions take a while to propogate. Keep trying to fetch the file.",
                                 "until [[ -e ${ANSIBLE_DEB_NAME} ]]",
                                 "do",
-                                "  aws s3 cp --region eu-west-1 s3://${RELEASES_BUCKET}/${ANSIBLE_DEB_NAME} ${ANSIBLE_DEB_NAME}",
+                                "  aws s3 cp --region us-east-1 s3://${RELEASES_BUCKET}/${ANSIBLE_DEB_NAME} ${ANSIBLE_DEB_NAME}",
                                 "done",
                                 "dpkg -i ${ANSIBLE_DEB_NAME}",
                                 "",
@@ -1212,7 +1212,7 @@
                                 "# Sometimes permissions take a while to propogate. Keep trying to fetch the file.",
                                 "until [[ -e ${ANSIBLE_CONFIG_PACKAGE} ]]",
                                 "do",
-                                "  aws s3 cp --region eu-west-1 s3://${RELEASES_BUCKET}/${ANSIBLE_CONFIG_PACKAGE} ${ANSIBLE_CONFIG_PACKAGE} || sleep 5",
+                                "  aws s3 cp --region us-east-1 s3://${RELEASES_BUCKET}/${ANSIBLE_CONFIG_PACKAGE} ${ANSIBLE_CONFIG_PACKAGE} || sleep 5",
                                 "done",
                                 "",
                                 "tar zxf ${ANSIBLE_CONFIG_PACKAGE}",
@@ -1239,8 +1239,8 @@
             "Type": "AWS::AutoScaling::AutoScalingGroup",
             "Properties": {
                 "AvailabilityZones": [
-                    "eu-west-1a",
-                    "eu-west-1b"
+                    "us-east-1a",
+                    "us-east-1b"
                 ],
                 "LaunchConfigurationName": {
                     "Ref": "WebServerLaunchConfig"
